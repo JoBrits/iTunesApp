@@ -1,9 +1,3 @@
-Project Src Files Pushed to GIT 
-
-## Download source files from github
-iTunesApp = https://github.com/JoBrits/iTunesApp.git
-iTunesAppClient = https://github.com/JoBrits/iTunesAppClient.git
-
 ## To run application: 
 Open ItunesApp folder and launch the app by typing ‘npm start’ from the command line interface.
 Open Client folder and launch the frontend by typing ‘npm start’ from the command line interface.
@@ -37,4 +31,6 @@ For testing I used Jest and supertest
 To test if useFavoritesSession Hook is working
 from terminal run "npm test"
 
-## App Deployed to Heroku
+## App Deployed to GIT
+iTunesApp = https://github.com/JoBrits/iTunesApp.git
+iTunesAppClient = https://github.com/JoBrits/iTunesAppClient.git
