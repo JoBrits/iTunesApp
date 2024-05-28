@@ -22,6 +22,11 @@ app.use(bodyParser.json());
 //   fs.writeFileSync(favoritesFilePath, JSON.stringify([]));
 // }
 
+// Health check if server is running
+app.get('/status', (req, res) => {
+  res.json({ status: 'Server is running' });
+});
+
 // Search route
 app.get('/search', async (req, res) => {
     const { term, media } = req.query; 

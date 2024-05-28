@@ -1,6 +1,13 @@
 ## To run application: 
-Open ItunesApp folder and launch the app by typing ‘npm start’ from the command line interface.
-Open Client folder and launch the frontend by typing ‘npm start’ from the command line interface.
+1. Open ItunesApp folder
+- Install Node Modules by typing ‘npm install' from the command line interface.
+- launch the app by typing ‘npm start’ from the command line interface.
+- test local server by typing 'http://localhost:3003/status' into the address bar
+
+2. Open Client folder 
+- NB!! use --legacy-peer-deps as react version 18 has depreciated some testing libraries
+- Install Node Modules by typing npm 'install --legacy-peer-deps' from the command line interface.
+- launch the app by typing ‘npm start’ from the command line interface.
 
 ## How to use the Application
 - From your react localhost root url (http://localhost:3000/)
@@ -27,8 +34,8 @@ Viewing Favorites
 Using Helmet to secure the iTunesApp Express app as it is a good practice as it helps set various HTTP headers to enhance security. Helmet is a collection of middleware functions that can help protect your app from some well-known web vulnerabilities by setting HTTP headers appropriately.
 
 ## Testing
-For testing I used Jest and supertest 
-To test if useFavoritesSession Hook is working
+For testing I used Jest
+To test if the server is running and if the save favorite button is working
 from terminal run "npm test"
 
 ## App Deployed to GIT
