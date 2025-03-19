@@ -38,6 +38,14 @@ For testing I used Jest
 To test if the server is running and if the save favorite button is working
 from terminal run "npm test"
 
+## Unit testing
+I used Mocha as the test runner and Chai for assertions and Supertest to test the HTTP endpoints.
+- Mocha to Test framework to run unit tests.
+- Chai to Assertion library to compare expected vs. actual results.
+- Chai-HTTP to Allows HTTP assertions in Chai.
+- Supertest to Makes HTTP requests to test API endpoints.
+- Dotenv to Ensures environment variables load correctly in tests
+
 ## App Deployed to GIT
 iTunesApp = https://github.com/JoBrits/iTunesApp.git
 iTunesAppClient = https://github.com/JoBrits/iTunesAppClient.git

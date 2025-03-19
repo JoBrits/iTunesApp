@@ -1,53 +1,83 @@
 const express = require("express");
+const cors = require("cors");
 const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // File System Module
-const fs = require("fs");
-const path = require("path");
 const app = express();
-const helmet = require('helmet');
 const PORT = process.env.PORT || 3003;
+const SECRET_KEY = process.env.JWT_SECRET;
 
-// Updated functionality to store favorites in session storage and not favorites .json
-// const favoritesFilePath = path.join(__dirname, "favorites.json");
-
-// Integrate Helmet for security
-app.use(helmet());  
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Updated functionality to store favorites in session storage and not favorites .json
-// Ensure the favorites file exists
-// if (!fs.existsSync(favoritesFilePath)) {
-//   fs.writeFileSync(favoritesFilePath, JSON.stringify([]));
-// }
+// Enable CORS for all origins and allow Content-Type header
+app.use(cors({
+  origin: "http://localhost:3000",  // Allow your frontend's origin (or "*" for all origins)
+  methods: "GET,POST",  // Allow specific HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"],  // Allow specific headers
+}));
+
+// Middleware to authenticate requests
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).json({ error: "Invalid token" });
+
+    req.user = user;
+    next();
+  });
+};
+
+// Route to generate JWT
+app.post("/login", (req, res) => {
+  const { username } = req.body;
+
+  if (!username) return res.status(400).json({ error: "Username is required" });
+
+  const user = { name: username };
+  const token = jwt.sign(user, SECRET_KEY);
+
+  res.json({ token });
+});
+
+// Protected route example
+app.get("/protected", authenticateToken, (req, res) => {
+  res.json({ message: `Welcome ${req.user.name}, this is protected data.` });
+});
 
 // Health check if server is running
 app.get('/status', (req, res) => {
   res.json({ status: 'Server is running' });
 });
 
-// Search route
-app.get('/search', async (req, res) => {
-    const { term, media } = req.query; 
-  
-    if (!term) {
-      return res.status(400).send({ error: 'Search term is required' });
+// Search route (now requires authentication)
+app.get("/search", authenticateToken, async (req, res) => {
+  const { term, media } = req.query;
+
+  if (!term) {
+    return res.status(400).send({ error: "Search term is required" });
+  }
+
+  try {
+    const url = new URL("https://itunes.apple.com/search");
+    url.searchParams.append("term", term);
+    if (media && media !== "all") {
+      url.searchParams.append("media", media);
     }
-  
-    try {
-      const url = new URL('https://itunes.apple.com/search');
-      url.searchParams.append('term', term);
-      if (media && media !== 'all') {
-        url.searchParams.append('media', media);
-      }
-      const response = await fetch(url.toString());
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      res.status(500).send({ error: 'Failed to fetch data from iTunes API' });
-    }
-  });
+    const response = await fetch(url.toString());
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to fetch data from iTunes API" });
+  }
+});
 
 // Route to get track details by trackId
 app.get("/track/:trackId", async (req, res) => {
@@ -64,105 +94,6 @@ app.get("/track/:trackId", async (req, res) => {
   }
 });
 
-// Updated functionality to store favorites in session storage and not favorites .json
-// Route to get all favorite tracks
-// app.get("/favorites", (req, res) => {
-//   fs.readFile(favoritesFilePath, "utf8", (err, data) => {
-//     if (err) {
-//       return res.status(500).send({ error: "Failed to read favorites file" });
-//     }
-
-//     const favorites = JSON.parse(data);
-//     res.send(favorites);
-//   });
-// });
-
-// Route to save a favorite track
-// app.post("/favorites", (req, res) => {
-//   const { track } = req.body;
-
-//   if (!track || !track.trackId) {
-//     return res.status(400).send({ error: "Invalid track data" });
-//   }
-
-//   fs.readFile(favoritesFilePath, "utf8", (err, data) => {
-//     if (err) {
-//       return res.status(500).send({ error: "Failed to read favorites file" });
-//     }
-
-//     const favorites = JSON.parse(data);
-//     if (favorites.some((fav) => fav.trackId === track.trackId)) {
-//       return res.status(400).send({ error: "Track is already in favorites" });
-//     }
-
-//     favorites.push(track);
-//     fs.writeFile(
-//       favoritesFilePath,
-//       JSON.stringify(favorites, null, 2),
-//       (err) => {
-//         if (err) {
-//           return res
-//             .status(500)
-//             .send({ error: "Failed to save favorite track" });
-//         }
-
-//         res.status(201).send({ message: "Track saved as favorite" });
-//       }
-//     );
-//   });
-// });
-
-// Route to check if a track is in favorites
-// app.get("/favorites/:trackId", (req, res) => {
-//   const { trackId } = req.params;
-
-//   fs.readFile(favoritesFilePath, "utf8", (err, data) => {
-//     if (err) {
-//       return res.status(500).send({ error: "Failed to read favorites file" });
-//     }
-
-//     const favorites = JSON.parse(data);
-//     const isFavorite = favorites.some(
-//       (fav) => fav.trackId === parseInt(trackId, 10)
-//     );
-//     res.send({ isFavorite });
-//   });
-// });
-
-// Route to remove a favorite track
-// app.delete("/favorites/:trackId", (req, res) => {
-//   const { trackId } = req.params;
-
-//   fs.readFile(favoritesFilePath, "utf8", (err, data) => {
-//     if (err) {
-//       return res.status(500).send({ error: "Failed to read favorites file" });
-//     }
-
-//     let favorites = JSON.parse(data);
-//     const initialLength = favorites.length;
-//     favorites = favorites.filter(
-//       (fav) => fav.trackId !== parseInt(trackId, 10)
-//     );
-
-//     if (favorites.length === initialLength) {
-//       return res.status(404).send({ error: "Track not found in favorites" });
-//     }
-
-//     fs.writeFile(
-//       favoritesFilePath,
-//       JSON.stringify(favorites, null, 2),
-//       (err) => {
-//         if (err) {
-//           return res
-//             .status(500)
-//             .send({ error: "Failed to remove favorite track" });
-//         }
-
-//         res.status(200).send({ message: "Track removed from favorites" });
-//       }
-//     );
-//   });
-// });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
